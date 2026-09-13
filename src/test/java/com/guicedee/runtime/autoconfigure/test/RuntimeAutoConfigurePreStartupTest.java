@@ -18,6 +18,10 @@ class RuntimeAutoConfigurePreStartupTest {
 
     @BeforeAll
     void setUp() {
+        // Mask workstation .env files and inherited cloud variables for this local fixture.
+        System.setProperty("CONTAINER_APP_NAME", "");
+        System.setProperty("CONTAINER_APP_ENV_DNS_SUFFIX", "");
+        System.setProperty("CLOUD_RUNTIME_PREFERRED_PROVIDER", "azure-container-apps");
         IGuiceContext.registerModule("com.guicedee.runtime.autoconfigure.test");
         IGuiceContext.instance().inject();
     }

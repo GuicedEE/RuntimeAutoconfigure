@@ -29,9 +29,14 @@ class SimulatedCloudDetectionTest {
         System.setProperty("CONTAINER_APP_REVISION", "wallet-api--rev5");
         System.setProperty("CONTAINER_APP_REPLICA_NAME", "wallet-api--rev5-7f8d9c4b2-xk9m2");
         System.setProperty("CONTAINER_APP_HOSTNAME", "wallet-api.happydesert-abc123.eastus.azurecontainerapps.io");
+        System.setProperty("CLOUD_RUNTIME_ENABLED", "true");
+        System.setProperty("CLOUD_RUNTIME_PREFERRED_PROVIDER", "azure-container-apps");
+        System.setProperty("CLOUD_RUNTIME_SERVICE_NAME", "wallet-api");
+        System.setProperty("CLOUD_RUNTIME_HOSTNAME", "wallet-api.happydesert-abc123.eastus.azurecontainerapps.io");
+        System.setProperty("CLOUD_RUNTIME_PORT", "3000");
 
         // Boot GuicedEE — scans the .azure sub-package which has @AzureContainerApps annotation
-        IGuiceContext.registerModule("com.guicedee.runtime.autoconfigure.test.azure");
+        IGuiceContext.registerModule("com.guicedee.runtime.autoconfigure.test");
         IGuiceContext.instance().inject();
     }
 
@@ -49,14 +54,14 @@ class SimulatedCloudDetectionTest {
     @Test
     @Order(1)
     void testCloudDetected() {
-        assertTrue(Boolean.parseBoolean(Environment.getSystemPropertyOrEnvironment("CLOUD","false")),
+        assertTrue(RuntimeAutoConfigurePreStartup.isCloudDetected(),
                 "Azure Container Apps should be detected");
     }
 
     @Test
     @Order(2)
     void testProviderIdIsAzure() {
-        assertEquals("azure-container-apps", Boolean.parseBoolean(Environment.getSystemPropertyOrEnvironment("CLOUD", "false")));
+        assertEquals("azure-container-apps", RuntimeAutoConfigurePreStartup.getDetectedProviderId());
     }
 
     @Test

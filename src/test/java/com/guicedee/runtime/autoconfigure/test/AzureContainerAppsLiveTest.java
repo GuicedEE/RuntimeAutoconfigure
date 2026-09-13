@@ -191,17 +191,18 @@ class AzureContainerAppsLiveTest
     {
         String azCmd = System.getProperty("os.name").toLowerCase().contains("win") ? "cmd.exe" : "az";
         String[] command = azCmd.equals("cmd.exe")
-                ? new String[]{"cmd.exe", "/c", "az", "containerapp", "show", "-n", appName, "-g", resourceGroup, "--query", jsonPath, "-o", "tsv"}
-                : new String[]{"az", "containerapp", "show", "-n", appName, "-g", resourceGroup, "--query", jsonPath, "-o", "tsv"};
+                ? new String[]{"cmd.exe", "/c", "az", "containerapp", "show", "-n", appName, "-g", resourceGroup, "--query", jsonPath, "-o", "tsv", "--only-show-errors"}
+                : new String[]{"az", "containerapp", "show", "-n", appName, "-g", resourceGroup, "--query", jsonPath, "-o", "tsv", "--only-show-errors"};
         ProcessBuilder pb = new ProcessBuilder(command);
-        pb.redirectErrorStream(true);
+        pb.redirectError(ProcessBuilder.Redirect.INHERIT);
         Process process = pb.start();
         String result;
         try (var reader = new BufferedReader(new InputStreamReader(process.getInputStream())))
         {
             result = reader.lines().collect(Collectors.joining()).trim();
         }
-        process.waitFor(15, TimeUnit.SECONDS);
+        assertTrue(process.waitFor(15, TimeUnit.SECONDS), "Azure CLI query timed out");
+        assertEquals(0, process.exitValue(), "Azure CLI query failed");
         return result.isEmpty() ? null : result;
     }
 
@@ -209,17 +210,18 @@ class AzureContainerAppsLiveTest
     {
         String azCmd = System.getProperty("os.name").toLowerCase().contains("win") ? "cmd.exe" : "az";
         String[] command = azCmd.equals("cmd.exe")
-                ? new String[]{"cmd.exe", "/c", "az", "containerapp", "env", "list", "-g", resourceGroup, "--query", "[0].properties.defaultDomain", "-o", "tsv"}
-                : new String[]{"az", "containerapp", "env", "list", "-g", resourceGroup, "--query", "[0].properties.defaultDomain", "-o", "tsv"};
+                ? new String[]{"cmd.exe", "/c", "az", "containerapp", "env", "list", "-g", resourceGroup, "--query", "[0].properties.defaultDomain", "-o", "tsv", "--only-show-errors"}
+                : new String[]{"az", "containerapp", "env", "list", "-g", resourceGroup, "--query", "[0].properties.defaultDomain", "-o", "tsv", "--only-show-errors"};
         ProcessBuilder pb = new ProcessBuilder(command);
-        pb.redirectErrorStream(true);
+        pb.redirectError(ProcessBuilder.Redirect.INHERIT);
         Process process = pb.start();
         String result;
         try (var reader = new BufferedReader(new InputStreamReader(process.getInputStream())))
         {
             result = reader.lines().collect(Collectors.joining()).trim();
         }
-        process.waitFor(15, TimeUnit.SECONDS);
+        assertTrue(process.waitFor(15, TimeUnit.SECONDS), "Azure CLI query timed out");
+        assertEquals(0, process.exitValue(), "Azure CLI query failed");
         return result.isEmpty() ? null : result;
     }
 }
