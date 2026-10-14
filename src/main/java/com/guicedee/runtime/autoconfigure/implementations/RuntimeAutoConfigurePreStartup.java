@@ -1,5 +1,7 @@
 package com.guicedee.runtime.autoconfigure.implementations;
 
+import com.guicedee.client.utils.ClassLoading;
+
 import com.guicedee.client.Environment;
 import com.guicedee.client.IGuiceContext;
 import com.guicedee.client.services.lifecycle.IGuicePreStartup;
@@ -204,7 +206,7 @@ public class RuntimeAutoConfigurePreStartup implements IGuicePreStartup<RuntimeA
         for (var mapping : mappings) {
             // Check packages
             for (PackageInfo packageInfo : scanResult.getPackageInfo()) {
-                if (packageInfo.getAnnotationInfo(mapping.annotationType.getName()) != null) {
+                if (packageInfo.getDirectAnnotationInfo(mapping.annotationType.getName()) != null) {
                     log.debug("📋 Found @{} on package '{}'", mapping.annotationType.getSimpleName(), packageInfo.getName());
                     return mapping.provider;
                 }
@@ -225,7 +227,7 @@ public class RuntimeAutoConfigurePreStartup implements IGuicePreStartup<RuntimeA
      */
     private CloudRuntimeOptions scanCloudRuntimeOptions(ScanResult scanResult) {
         for (PackageInfo packageInfo : scanResult.getPackageInfo()) {
-            var annotationInfo = packageInfo.getAnnotationInfo(CloudRuntimeOptions.class.getName());
+            var annotationInfo = packageInfo.getDirectAnnotationInfo(CloudRuntimeOptions.class.getName());
             if (annotationInfo != null) {
                 try {
                     Class<?> packageInfoClass = Class.forName(packageInfo.getName() + ".package-info");
@@ -244,7 +246,7 @@ public class RuntimeAutoConfigurePreStartup implements IGuicePreStartup<RuntimeA
         for (var classInfo : classesWithAnnotation) {
             if (classInfo.getName().endsWith(".package-info")) continue;
             try {
-                Class<?> clazz = classInfo.loadClass();
+                Class<?> clazz = ClassLoading.loadClass(classInfo);
                 CloudRuntimeOptions annotation = clazz.getAnnotation(CloudRuntimeOptions.class);
                 if (annotation != null) {
                     log.debug("📋 Found @CloudRuntimeOptions on class '{}'", classInfo.getName());
